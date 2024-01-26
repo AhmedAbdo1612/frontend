@@ -103,6 +103,7 @@ const AddProductForm = () => {
           if(item.image){
             const fileName = new Date().getTime()+ '-'+item.image.name;
             const storage = getStorage(firebaseApp)
+            
           }
         }
       } catch (error) {
