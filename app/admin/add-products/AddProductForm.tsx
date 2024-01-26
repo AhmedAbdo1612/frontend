@@ -10,7 +10,7 @@ import TextArea from "@/app/components/Inputs/TextArea";
 import firebaseApp from "@/libs/firebase";
 import { categories } from "@/utils/Categories";
 import { colors } from "@/utils/colors";
-import { getStorage } from "firebase/storage";
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
 import { useCallback, useEffect, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -85,32 +85,53 @@ const AddProductForm = () => {
       return prev;
     });
   }, []);
-  const onSubmit:SubmitHandler<FieldValues> = async(data)=>{
-    setLoading(true)
-    let uploadedImages:UploadedImageType[] = []
-    if(!data.category){
-      setLoading(false)
-      return toast.error("Category is not selected!")
+  const onSubmit: SubmitHandler<FieldValues> = async (data) => {
+    setLoading(true);
+    let uploadedImages: UploadedImageType[] = [];
+    if (!data.category) {
+      setLoading(false);
+      return toast.error("Category is not selected!");
     }
-    if(!data.images || data.length ===0){
-      setLoading(false)
-      return toast.error("No selected images!")
+    if (!data.images || data.length === 0) {
+      setLoading(false);
+      return toast.error("No selected images!");
     }
-    const handleImageUploads = async ()=>{
-      toast("Creating product, please wait.....")
+    const handleImageUploads = async () => {
+      toast("Creating product, please wait.....");
       try {
-        for(const item of data.images){
-          if(item.image){
-            const fileName = new Date().getTime()+ '-'+item.image.name;
-            const storage = getStorage(firebaseApp)
-            
+        for (const item of data.images) {
+          if (item.image) {
+            const fileName = new Date().getTime() + "-" + item.image.name;
+            const storage = getStorage(firebaseApp);
+            const storageRef = ref(storage, `products/${fileName}`);
+            const uploadTask = uploadBytesResumable(storageRef, item.image);
+            await new Promise<void>((resolve, reject) => {
+              uploadTask.on('state_changed',(snapshot)=>{
+                console.log("Upload is: ",(snapshot.bytesTransferred/snapshot.totalBytes)*100)
+              }), (err:any)=>{
+                console.log("Error in Uploading Image")
+                reject(err)
+              },()=>{
+                getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl)=>{
+                  console.log("download url is", downloadUrl)
+                  uploadedImages.push({
+                    ...item, image:downloadUrl
+                  })
+                  resolve()
+                }).catch((err)=>{
+                  console.log("Error getting the downoad url")
+                  reject(err)
+                })
+              }
+            });
           }
         }
       } catch (error) {
-        
+        setLoading(false)
+        toast.error("Error in images upload")
       }
-    }
-  }
+    };
+  };
   return (
     <>
       <Heading title="Add a Product" center />
@@ -201,8 +222,11 @@ const AddProductForm = () => {
           })}
         </div>
       </div>
-      {loading?<DotLoader className="text-slate-600" />: (
-      <Button label="Add Product" onClick={handleSubmit(onSubmit)}/>)}
+      {loading ? (
+        <DotLoader className="text-slate-600" />
+      ) : (
+        <Button label="Add Product" onClick={handleSubmit(onSubmit)} />
+      )}
     </>
   );
 };
