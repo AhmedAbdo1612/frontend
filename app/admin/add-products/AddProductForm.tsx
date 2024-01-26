@@ -10,11 +10,18 @@ import TextArea from "@/app/components/Inputs/TextArea";
 import firebaseApp from "@/libs/firebase";
 import { categories } from "@/utils/Categories";
 import { colors } from "@/utils/colors";
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+import axios from "axios";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { DotLoader } from "react-spinners";
+import { DotLoader, ScaleLoader } from "react-spinners";
 
 export type ImageType = {
   color: string;
@@ -32,6 +39,7 @@ const AddProductForm = () => {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<ImageType[] | null>(null);
   const [isProductCreated, setIsProductCreated] = useState(false);
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -106,31 +114,51 @@ const AddProductForm = () => {
             const storageRef = ref(storage, `products/${fileName}`);
             const uploadTask = uploadBytesResumable(storageRef, item.image);
             await new Promise<void>((resolve, reject) => {
-              uploadTask.on('state_changed',(snapshot)=>{
-                console.log("Upload is: ",(snapshot.bytesTransferred/snapshot.totalBytes)*100)
-              }), (err:any)=>{
-                console.log("Error in Uploading Image")
-                reject(err)
-              },()=>{
-                getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl)=>{
-                  console.log("download url is", downloadUrl)
-                  uploadedImages.push({
-                    ...item, image:downloadUrl
-                  })
-                  resolve()
-                }).catch((err)=>{
-                  console.log("Error getting the downoad url")
-                  reject(err)
-                })
-              }
+              uploadTask.on(
+                "state_changed",
+                (snapshot) => {},
+                (error: any) => {
+                  console.log("Error in Uploading Image");
+                  reject(error);
+                },
+                () => {
+                  getDownloadURL(uploadTask.snapshot.ref)
+                    .then((downloadUrl) => {
+                      uploadedImages.push({
+                        ...item,
+                        image: downloadUrl,
+                      });
+                      resolve();
+                    })
+                    .catch((err) => {
+                      reject(err);
+                    });
+                }
+              );
             });
           }
         }
       } catch (error) {
-        setLoading(false)
-        toast.error("Error in images upload")
+        setLoading(false);
+        return toast.error("Error in images upload");
       }
     };
+    await handleImageUploads();
+    const productData = { ...data, images: uploadedImages };
+    axios
+      .post("/api/product", productData)
+      .then(() => {
+        toast.success("Product Created");
+        setIsProductCreated(true);
+        router.refresh();
+      })
+      .catch((err) => {
+        console.log(err)
+        toast.error("Something went wrong in saving the product");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
   return (
     <>
@@ -223,7 +251,9 @@ const AddProductForm = () => {
         </div>
       </div>
       {loading ? (
-        <DotLoader className="text-slate-600" />
+        <div className="text-slate-500">
+          <ScaleLoader />
+        </div>
       ) : (
         <Button label="Add Product" onClick={handleSubmit(onSubmit)} />
       )}
