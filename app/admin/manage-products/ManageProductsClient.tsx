@@ -99,7 +99,7 @@ const ManageProductsClient: React.FC<ManageProductsClientProps> = ({
           <ActionBtn
             icon={MdRemoveRedEye}
             custom="hover:bg-green-500 hover:text-white hover:font-semibold"
-            onClick={() => {}}
+            onClick={() => {router.push(`/product/${params.row.id}`)}}
           />
         </div>
       ),
