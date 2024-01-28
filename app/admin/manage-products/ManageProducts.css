@@ -1,0 +1,13 @@
+.toggle-rotation{
+ 
+    animation: 2s  linear;
+    transform: rotate(360deg);
+}
+@keyframes rotation{
+    50%{
+        transform: rotate(360deg);
+    }
+    100%{
+        transform: rotate(0deg);
+    }
+}
