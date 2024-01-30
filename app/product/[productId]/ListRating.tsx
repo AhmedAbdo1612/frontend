@@ -9,7 +9,7 @@ interface ListRatingProps {
 const ListRating: React.FC<ListRatingProps> = ({ product }) => {
     return (
         <div>
-            <Heading title="Product Review"/>
+            <Heading title="Product Reviews"/>
         </div>
     );
 }
