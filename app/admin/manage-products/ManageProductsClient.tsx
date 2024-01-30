@@ -94,12 +94,16 @@ const ManageProductsClient: React.FC<ManageProductsClientProps> = ({
           <ActionBtn
             icon={MdDelete}
             custom="transition hover:bg-rose-600 hover:text-white"
-            onClick={() => {handleDelete(params.row.id, params.row.images)}}
+            onClick={() => {
+              handleDelete(params.row.id, params.row.images);
+            }}
           />
           <ActionBtn
             icon={MdRemoveRedEye}
             custom="hover:bg-green-500 hover:text-white hover:font-semibold"
-            onClick={() => {router.push(`/product/${params.row.id}`)}}
+            onClick={() => {
+              router.push(`/product/${params.row.id}`);
+            }}
           />
         </div>
       ),
@@ -136,13 +140,16 @@ const ManageProductsClient: React.FC<ManageProductsClientProps> = ({
       }
     };
     await handleImageDelete();
-    axios.delete(`/api/product/${id}`).then((res)=>{
-      toast.success("Product Deleted Successfully!")
-      router.refresh()
-    }).catch((err:any)=>{
-      toast.error("Failed to delete product")
-      console.log(err)
-    })
+    axios
+      .delete(`/api/product/${id}`)
+      .then((res) => {
+        toast.success("Product Deleted Successfully!");
+        router.refresh();
+      })
+      .catch((err: any) => {
+        toast.error("Failed to delete product");
+        console.log(err);
+      });
   }, []);
   return (
     <div className="max-w-[1150px] m-auto text-xl">
