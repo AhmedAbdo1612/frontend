@@ -14,9 +14,6 @@ import {
 } from "react-icons/md";
 import Status from "@/app/components/Status";
 import ActionBtn from "@/app/components/ActionBtn";
-import { useCallback } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import moment from "moment";
 
@@ -121,7 +118,6 @@ const OrderssClient: React.FC<OrdersClientProps> = ({ orders }) => {
       width: 200,
       renderCell: (params) => (
         <div className="flex justify-between gap-4 w-full">
-        
           <ActionBtn
             icon={MdRemoveRedEye}
             custom="hover:bg-green-500 hover:text-white hover:font-semibold"
@@ -133,9 +129,6 @@ const OrderssClient: React.FC<OrdersClientProps> = ({ orders }) => {
       ),
     },
   ];
- 
-
-  
 
   return (
     <div className="max-w-[1150px] m-auto text-xl">
